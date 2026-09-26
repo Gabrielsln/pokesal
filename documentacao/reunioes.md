@@ -14,3 +14,17 @@ Data: 17/09/2026
 Programação das classes, da exceção dos itens e teste da Main.
 
 Responsável: Gabriel Silva Nunes
+
+Dia 3 - Checklist: 
+
+Data: 24/09/2026
+Revisão manual do código e criação do checklist.md
+
+Responsável: Gabriel Silva Nunes
+
+Dia 4 - Documentação:
+
+Data: 25/09/2026
+Execução do SonarQube, criação do Documento de Testes e Matriz de rastreabilidade, e testes do JUnit.
+
+Responsável: Gabriel Silva Nunes
