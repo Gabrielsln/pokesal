@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ServicoTerrenoEstacionamento.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PokeSal</a> &gt; <a href="index.source.html" class="el_package">br.ucsal.pokesal.servicos</a> &gt; <span class="el_source">ServicoTerrenoEstacionamento.java</span></div><h1>ServicoTerrenoEstacionamento.java</h1><pre class="source lang-java linenums">package br.ucsal.pokesal.servicos;
+
+import br.ucsal.pokesal.Clima;
+import br.ucsal.pokesal.Terreno;
+
+import java.time.Clock;
+import java.time.LocalTime;
+import java.util.Objects;
+
+/**
+ * Implementacao de ServicoTerreno para o Estacionamento da UCSal Pituacu,
+ * combinando condicao climatica e horario fornecido por um Clock.
+ */
+public class ServicoTerrenoEstacionamento implements ServicoTerreno {
+
+    public static final int HORA_INICIO_DIA = 6;
+    public static final int HORA_FIM_DIA = 18;
+
+    private final ServicoClima servicoClima;
+    private final Clock clock;
+
+    /**
+     * Construtor com injecao de ServicoClima e Clock.
+     *
+     * @param servicoClima Servico que informa o clima atual.
+     * @param clock Relogio usado para consultar o horario atual.
+     */
+<span class="fc" id="L28">    public ServicoTerrenoEstacionamento(ServicoClima servicoClima, Clock clock) {</span>
+<span class="fc" id="L29">        this.servicoClima = Objects.requireNonNull(servicoClima,</span>
+                &quot;ServicoClima nao pode ser nulo.&quot;);
+<span class="fc" id="L31">        this.clock = Objects.requireNonNull(clock, &quot;Clock nao pode ser nulo.&quot;);</span>
+<span class="fc" id="L32">    }</span>
+
+    @Override
+    public Terreno obterTerrenoAtual() {
+<span class="fc" id="L36">        Clima clima = servicoClima.obterClimaAtual();</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        if (clima == Clima.CHUVOSO) {</span>
+<span class="fc" id="L38">            return Terreno.POCA_CHUVA;</span>
+        }
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        if (clima == Clima.NUBLADO) {</span>
+<span class="fc" id="L41">            return Terreno.CANTEIRO_CENTRAL;</span>
+        }
+<span class="fc bfc" id="L43" title="All 2 branches covered.">        if (isHorarioDiurno()) {</span>
+<span class="fc" id="L44">            return Terreno.ASFALTO_QUENTE;</span>
+        }
+<span class="fc" id="L46">        return Terreno.NORMAL;</span>
+    }
+
+    private boolean isHorarioDiurno() {
+<span class="fc" id="L50">        int hora = LocalTime.now(clock).getHour();</span>
+<span class="pc bpc" id="L51" title="1 of 4 branches missed.">        return hora &gt;= HORA_INICIO_DIA &amp;&amp; hora &lt; HORA_FIM_DIA;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Batalha.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PokeSal</a> &gt; <a href="index.source.html" class="el_package">br.ucsal.pokesal</a> &gt; <span class="el_source">Batalha.java</span></div><h1>Batalha.java</h1><pre class="source lang-java linenums">package br.ucsal.pokesal;
+
+import br.ucsal.pokesal.registros.RegistroBatalha;
+import br.ucsal.pokesal.repositorios.RepositorioResultados;
+import br.ucsal.pokesal.servicos.ExecutorBatalha;
+import br.ucsal.pokesal.servicos.GeradorAleatorio;
+import br.ucsal.pokesal.servicos.ServicoNotificacao;
+import br.ucsal.pokesal.servicos.ServicoRanking;
+import br.ucsal.pokesal.servicos.ServicoTerreno;
+
+import java.util.Arrays;
+import java.util.Objects;
+
+/**
+ * Classe que gerencia acoes, calculo de dano e fluxo de combate.
+ */
+public class Batalha implements ExecutorBatalha {
+
+    public static final int DANO_ZERO = 0;
+    public static final int DANO_MINIMO = 1;
+    public static final int DANO_QUEIMADURA = 6;
+    public static final int DANO_ENVENENAMENTO = 8;
+    public static final double CHANCE_CRITICO = 6.25;
+    public static final double MULTIPLICADOR_CRITICO = 1.5;
+    public static final double MULTIPLICADOR_NEUTRO = 1.0;
+    public static final int LIMIAR_INVICTO = 3;
+    public static final double BONUS_INVICTO = 1.10;
+    public static final int MAXIMO_TURNOS = 100;
+
+    private final GeradorAleatorio geradorAleatorio;
+    private final ServicoTerreno servicoTerreno;
+    private final RepositorioResultados repositorioResultados;
+    private final RegistroBatalha registroBatalha;
+    private final ServicoNotificacao servicoNotificacao;
+    private final ServicoRanking servicoRanking;
+
+    /**
+     * Construtor com injecao de todos os colaboradores necessarios para a batalha.
+     *
+     * @param geradorAleatorio Gerador de aleatoriedade para precisao e critico.
+     * @param servicoTerreno Servico que informa o terreno atual da arena.
+     * @param repositorioResultados Repositorio para salvar resultados finais.
+     * @param registroBatalha Registro dos eventos de cada turno.
+     * @param servicoNotificacao Servico de notificacao do torneio.
+     * @param servicoRanking Servico de ranking de vitorias consecutivas.
+     */
+    public Batalha(GeradorAleatorio geradorAleatorio,
+                   ServicoTerreno servicoTerreno,
+                   RepositorioResultados repositorioResultados,
+                   RegistroBatalha registroBatalha,
+                   ServicoNotificacao servicoNotificacao,
+<span class="fc" id="L52">                   ServicoRanking servicoRanking) {</span>
+<span class="fc" id="L53">        this.geradorAleatorio = Objects.requireNonNull(geradorAleatorio,</span>
+                &quot;GeradorAleatorio nao pode ser nulo.&quot;);
+<span class="fc" id="L55">        this.servicoTerreno = Objects.requireNonNull(servicoTerreno,</span>
+                &quot;ServicoTerreno nao pode ser nulo.&quot;);
+<span class="fc" id="L57">        this.repositorioResultados = Objects.requireNonNull(repositorioResultados,</span>
+                &quot;RepositorioResultados nao pode ser nulo.&quot;);
+<span class="fc" id="L59">        this.registroBatalha = Objects.requireNonNull(registroBatalha,</span>
+                &quot;RegistroBatalha nao pode ser nulo.&quot;);
+<span class="fc" id="L61">        this.servicoNotificacao = Objects.requireNonNull(servicoNotificacao,</span>
+                &quot;ServicoNotificacao nao pode ser nulo.&quot;);
+<span class="fc" id="L63">        this.servicoRanking = Objects.requireNonNull(servicoRanking,</span>
+                &quot;ServicoRanking nao pode ser nulo.&quot;);
+<span class="fc" id="L65">    }</span>
+
+    /**
+     * Calcula o dano base deterministico causado pelo atacante no defensor.
+     *
+     * @param atacante Pokesal que ataca.
+     * @param defensor Pokesal que recebe o golpe.
+     * @param terreno Lugar onde a batalha esta acontecendo.
+     * @return Valor numerico inteiro do dano base.
+     */
+    public int calcularDano(Pokesal atacante, Pokesal defensor, Terreno terreno) {
+<span class="fc" id="L76">        double base = calcularDanoBruto(atacante, defensor, atacante.getTipo(), terreno, null);</span>
+<span class="fc" id="L77">        return Math.max((int) base, DANO_MINIMO);</span>
+    }
+
+    /**
+     * Calcula o dano de um golpe considerando terreno atual, precisao,
+     * bonus de ranking e chance de acerto critico.
+     *
+     * @param atacante Pokesal que ataca.
+     * @param defensor Pokesal defensor.
+     * @param golpe Golpe executado.
+     * @param treinadorAtacante Treinador do atacante (opcional para consulta de ranking).
+     * @return Dano final calculado (0 se o golpe errar).
+     */
+    public int calcularDanoComGolpe(Pokesal atacante, Pokesal defensor,
+                                    Golpe golpe, Treinador treinadorAtacante) {
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">        if (!acertouGolpe(golpe)) {</span>
+<span class="nc" id="L93">            return DANO_ZERO;</span>
+        }
+<span class="fc" id="L95">        Terreno terreno = servicoTerreno.obterTerrenoAtual();</span>
+<span class="fc" id="L96">        double danoBruto = calcularDanoBruto(atacante, defensor, golpe.getTipo(),</span>
+                terreno, treinadorAtacante);
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">        if (isAcertoCritico()) {</span>
+<span class="nc" id="L99">            danoBruto *= MULTIPLICADOR_CRITICO;</span>
+        }
+<span class="fc" id="L101">        return Math.max((int) danoBruto, DANO_MINIMO);</span>
+    }
+
+    /**
+     * Executa uma acao de ataque entre os combatentes, aplicando precisao,
+     * acerto critico e registrando os eventos de ataque e dano.
+     *
+     * @param atacante Pokesal atacante.
+     * @param defensor Pokesal que vai ser atingido.
+     * @param golpe Golpe utilizado no ataque.
+     * @param treinadorAtacante Treinador do atacante (pode ser null).
+     * @return Valor de dano efetivamente aplicado ao defensor.
+     */
+    public int realizarAtaque(Pokesal atacante, Pokesal defensor,
+                              Golpe golpe, Treinador treinadorAtacante) {
+<span class="fc" id="L116">        Terreno terreno = servicoTerreno.obterTerrenoAtual();</span>
+<span class="fc" id="L117">        registroBatalha.registrarAtaque(atacante, defensor, golpe);</span>
+
+<span class="fc bfc" id="L119" title="All 2 branches covered.">        if (!acertouGolpe(golpe)) {</span>
+<span class="fc" id="L120">            registroBatalha.registrarDano(defensor, DANO_ZERO, false);</span>
+<span class="fc" id="L121">            return DANO_ZERO;</span>
+        }
+
+<span class="fc" id="L124">        double danoBruto = calcularDanoBruto(atacante, defensor, golpe.getTipo(),</span>
+                terreno, treinadorAtacante);
+<span class="fc" id="L126">        boolean critico = isAcertoCritico();</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">        if (critico) {</span>
+<span class="fc" id="L128">            danoBruto *= MULTIPLICADOR_CRITICO;</span>
+        }
+
+<span class="fc" id="L131">        int danoFinal = Math.max((int) danoBruto, DANO_MINIMO);</span>
+<span class="fc" id="L132">        defensor.receberDano(danoFinal);</span>
+<span class="fc" id="L133">        registroBatalha.registrarDano(defensor, danoFinal, critico);</span>
+<span class="fc" id="L134">        return danoFinal;</span>
+    }
+
+    /**
+     * Processa efeitos de status e recuperacao do Canteiro Central no final do turno.
+     *
+     * @param pokesal Pokesal a ser processado no final do turno.
+     * @param terreno Terreno da arena.
+     */
+    public void processarFinalTurno(Pokesal pokesal, Terreno terreno) {
+<span class="fc bfc" id="L144" title="All 2 branches covered.">        if (!pokesal.isVivo()) {</span>
+<span class="fc" id="L145">            return;</span>
+        }
+<span class="fc" id="L147">        processarEfeitoStatus(pokesal);</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">        if (pokesal.isVivo()) {</span>
+<span class="fc" id="L149">            processarEfeitoTerreno(pokesal, terreno);</span>
+        }
+<span class="fc" id="L151">    }</span>
+
+    /**
+     * Executa um turno completo enviando os eventos ao RegistroBatalha na ordem:
+     * ataque, dano, efeito de status, efeito de terreno e uso de item.
+     *
+     * @param treinadorAtacante Treinador que realiza o turno.
+     * @param treinadorDefensor Treinador adversario.
+     * @param golpe Golpe executado.
+     * @param itemUsado Item utilizado no turno (pode ser null se nao usar item).
+     */
+    public void executarTurno(Treinador treinadorAtacante, Treinador treinadorDefensor,
+                              Golpe golpe, Item itemUsado) {
+<span class="fc" id="L164">        Pokesal atacante = treinadorAtacante.getPokesal();</span>
+<span class="fc" id="L165">        Pokesal defensor = treinadorDefensor.getPokesal();</span>
+<span class="fc" id="L166">        Terreno terreno = servicoTerreno.obterTerrenoAtual();</span>
+
+<span class="fc" id="L168">        realizarAtaque(atacante, defensor, golpe, treinadorAtacante);</span>
+<span class="fc" id="L169">        processarEfeitoStatus(defensor);</span>
+<span class="fc" id="L170">        processarEfeitoTerreno(atacante, terreno);</span>
+
+<span class="pc bpc" id="L172" title="1 of 2 branches missed.">        if (itemUsado != null) {</span>
+<span class="fc" id="L173">            treinadorAtacante.usarItem(itemUsado);</span>
+<span class="fc" id="L174">            registroBatalha.registrarUsoItem(treinadorAtacante, itemUsado);</span>
+        }
+<span class="fc" id="L176">    }</span>
+
+    /**
+     * Finaliza a batalha caso um dos combatentes tenha sido derrotado,
+     * salvando o resultado no repositorio, atualizando o ranking e notificando o vencedor.
+     * Se ambos ainda estiverem vivos, retorna null sem acionar o repositorio.
+     *
+     * @param treinador1 Primeiro treinador.
+     * @param treinador2 Segundo treinador.
+     * @param numeroTurnos Quantidade de turnos disputados.
+     * @return ResultadoBatalha se concluida, ou null se a batalha ainda nao terminou.
+     */
+    public ResultadoBatalha finalizarBatalha(Treinador treinador1,
+                                             Treinador treinador2,
+                                             int numeroTurnos) {
+<span class="fc" id="L191">        Pokesal p1 = treinador1.getPokesal();</span>
+<span class="fc" id="L192">        Pokesal p2 = treinador2.getPokesal();</span>
+
+<span class="fc bfc" id="L194" title="All 4 branches covered.">        if (p1.isVivo() &amp;&amp; p2.isVivo()) {</span>
+<span class="fc" id="L195">            return null;</span>
+        }
+
+<span class="fc bfc" id="L198" title="All 2 branches covered.">        Treinador vencedor = p1.isVivo() ? treinador1 : treinador2;</span>
+<span class="fc bfc" id="L199" title="All 2 branches covered.">        Treinador perdedor = p1.isVivo() ? treinador2 : treinador1;</span>
+
+<span class="fc" id="L201">        ResultadoBatalha resultado = new ResultadoBatalha(</span>
+                vencedor,
+                perdedor,
+                numeroTurnos,
+<span class="fc" id="L205">                Arrays.asList(p1, p2)</span>
+        );
+
+<span class="fc" id="L208">        salvarResultadoComSeguranca(resultado);</span>
+<span class="fc" id="L209">        registrarVitoriaComSeguranca(vencedor);</span>
+<span class="fc" id="L210">        notificarVencedorComSeguranca(vencedor, perdedor, numeroTurnos);</span>
+
+<span class="fc" id="L212">        return resultado;</span>
+    }
+
+    @Override
+    public ResultadoBatalha executarBatalha(Treinador treinador1, Treinador treinador2,
+                                            Golpe golpe1, Golpe golpe2) {
+<span class="fc" id="L218">        Terreno terrenoInicial = servicoTerreno.obterTerrenoAtual();</span>
+<span class="fc" id="L219">        treinador1.getPokesal().aplicarEfeitoTerrenoQuente(terrenoInicial);</span>
+<span class="fc" id="L220">        treinador2.getPokesal().aplicarEfeitoTerrenoQuente(terrenoInicial);</span>
+
+<span class="fc" id="L222">        int turnos = 0;</span>
+<span class="fc bfc" id="L223" title="All 2 branches covered.">        while (treinador1.getPokesal().isVivo()</span>
+<span class="pc bpc" id="L224" title="1 of 4 branches missed.">                &amp;&amp; treinador2.getPokesal().isVivo()</span>
+                &amp;&amp; turnos &lt; MAXIMO_TURNOS) {
+<span class="fc" id="L226">            turnos++;</span>
+<span class="fc" id="L227">            executarRodadaPorIniciativa(treinador1, treinador2, golpe1, golpe2);</span>
+        }
+
+<span class="fc" id="L230">        return finalizarBatalha(treinador1, treinador2, turnos);</span>
+    }
+
+    private void executarRodadaPorIniciativa(Treinador treinador1, Treinador treinador2,
+                                             Golpe golpe1, Golpe golpe2) {
+<span class="fc" id="L235">        Pokesal p1 = treinador1.getPokesal();</span>
+<span class="fc" id="L236">        Pokesal p2 = treinador2.getPokesal();</span>
+<span class="fc" id="L237">        Terreno terreno = servicoTerreno.obterTerrenoAtual();</span>
+
+<span class="fc bfc" id="L239" title="All 2 branches covered.">        if (p1.getVelocidadeEfetiva() &gt;= p2.getVelocidadeEfetiva()) {</span>
+<span class="fc" id="L240">            realizarAtaque(p1, p2, golpe1, treinador1);</span>
+<span class="pc bpc" id="L241" title="1 of 2 branches missed.">            if (p2.isVivo()) {</span>
+<span class="nc" id="L242">                realizarAtaque(p2, p1, golpe2, treinador2);</span>
+            }
+        } else {
+<span class="fc" id="L245">            realizarAtaque(p2, p1, golpe2, treinador2);</span>
+<span class="pc bpc" id="L246" title="1 of 2 branches missed.">            if (p1.isVivo()) {</span>
+<span class="nc" id="L247">                realizarAtaque(p1, p2, golpe1, treinador1);</span>
+            }
+        }
+
+<span class="fc" id="L251">        processarFinalTurno(p1, terreno);</span>
+<span class="fc" id="L252">        processarFinalTurno(p2, terreno);</span>
+<span class="fc" id="L253">    }</span>
+
+    private double calcularDanoBruto(Pokesal atacante, Pokesal defensor,
+                                     TipoElemental tipoGolpe, Terreno terreno,
+                                     Treinador treinadorAtacante) {
+<span class="fc" id="L258">        double base = atacante.getAtaqueEfetivo() - defensor.getDefesa();</span>
+<span class="fc bfc" id="L259" title="All 2 branches covered.">        if (base &lt; DANO_MINIMO) {</span>
+<span class="fc" id="L260">            base = DANO_MINIMO;</span>
+        }
+
+<span class="fc" id="L263">        double multTipo = tipoGolpe.getMultiplicador(defensor.getTipo());</span>
+<span class="fc" id="L264">        double multTerreno = obterMultiplicadorTerreno(tipoGolpe, terreno);</span>
+<span class="fc" id="L265">        double bonusDesespero = atacante.verificarBonusDesespero();</span>
+<span class="fc" id="L266">        double bonusInvicto = obterBonusInvicto(treinadorAtacante);</span>
+
+<span class="fc" id="L268">        return base * multTipo * multTerreno * bonusDesespero * bonusInvicto;</span>
+    }
+
+    private double obterMultiplicadorTerreno(TipoElemental tipoGolpe, Terreno terreno) {
+<span class="pc bpc" id="L272" title="1 of 4 branches missed.">        if (terreno == Terreno.ASFALTO_QUENTE &amp;&amp; tipoGolpe == TipoElemental.FOGO) {</span>
+<span class="fc" id="L273">            return Terreno.BONUS_DANO_FOGO;</span>
+        }
+<span class="pc bpc" id="L275" title="1 of 4 branches missed.">        if (terreno == Terreno.POCA_CHUVA &amp;&amp; tipoGolpe == TipoElemental.AGUA) {</span>
+<span class="fc" id="L276">            return Terreno.BONUS_DANO_AGUA;</span>
+        }
+<span class="fc" id="L278">        return MULTIPLICADOR_NEUTRO;</span>
+    }
+
+    private double obterBonusInvicto(Treinador treinadorAtacante) {
+<span class="fc bfc" id="L282" title="All 2 branches covered.">        if (treinadorAtacante == null) {</span>
+<span class="fc" id="L283">            return MULTIPLICADOR_NEUTRO;</span>
+        }
+<span class="fc" id="L285">        int vitorias = servicoRanking.consultarVitoriasConsecutivas(treinadorAtacante);</span>
+<span class="fc bfc" id="L286" title="All 2 branches covered.">        if (vitorias &gt;= LIMIAR_INVICTO) {</span>
+<span class="fc" id="L287">            return BONUS_INVICTO;</span>
+        }
+<span class="fc" id="L289">        return MULTIPLICADOR_NEUTRO;</span>
+    }
+
+    private boolean acertouGolpe(Golpe golpe) {
+<span class="fc bfc" id="L293" title="All 2 branches covered.">        return geradorAleatorio.gerarPercentual() &lt; golpe.getPrecisao();</span>
+    }
+
+    private boolean isAcertoCritico() {
+<span class="fc bfc" id="L297" title="All 2 branches covered.">        return geradorAleatorio.gerarPercentual() &lt; CHANCE_CRITICO;</span>
+    }
+
+    private void processarEfeitoStatus(Pokesal pokesal) {
+<span class="fc bfc" id="L301" title="All 2 branches covered.">        if (pokesal.getEfeito() == Efeito.QUEIMADO) {</span>
+<span class="fc" id="L302">            pokesal.receberDano(DANO_QUEIMADURA);</span>
+<span class="pc bpc" id="L303" title="1 of 2 branches missed.">        } else if (pokesal.getEfeito() == Efeito.ENVENENADO) {</span>
+<span class="nc" id="L304">            pokesal.receberDano(DANO_ENVENENAMENTO);</span>
+        }
+<span class="fc" id="L306">        registroBatalha.registrarEfeitoStatus(pokesal, pokesal.getEfeito());</span>
+<span class="fc" id="L307">    }</span>
+
+    private void processarEfeitoTerreno(Pokesal pokesal, Terreno terreno) {
+<span class="pc bpc" id="L310" title="1 of 4 branches missed.">        if (terreno == Terreno.CANTEIRO_CENTRAL &amp;&amp; pokesal.getTipo() == TipoElemental.PLANTA) {</span>
+<span class="fc" id="L311">            int cura = (int) (pokesal.getHpMax() * Terreno.FATOR_CURA_PLANTA);</span>
+<span class="fc" id="L312">            pokesal.curar(cura);</span>
+        }
+<span class="fc" id="L314">        registroBatalha.registrarEfeitoTerreno(pokesal, terreno);</span>
+<span class="fc" id="L315">    }</span>
+
+    private void salvarResultadoComSeguranca(ResultadoBatalha resultado) {
+        try {
+<span class="fc" id="L319">            repositorioResultados.salvar(resultado);</span>
+<span class="fc" id="L320">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L321">            registroBatalha.registrarErro(&quot;Falha ao salvar resultado: &quot; + e.getMessage());</span>
+<span class="fc" id="L322">        }</span>
+<span class="fc" id="L323">    }</span>
+
+    private void registrarVitoriaComSeguranca(Treinador vencedor) {
+        try {
+<span class="fc" id="L327">            servicoRanking.registrarVitoria(vencedor);</span>
+<span class="nc" id="L328">        } catch (RuntimeException e) {</span>
+<span class="nc" id="L329">            registroBatalha.registrarErro(&quot;Falha ao atualizar ranking: &quot; + e.getMessage());</span>
+<span class="fc" id="L330">        }</span>
+<span class="fc" id="L331">    }</span>
+
+    private void notificarVencedorComSeguranca(Treinador vencedor,
+                                               Treinador perdedor,
+                                               int numeroTurnos) {
+        try {
+<span class="fc" id="L337">            String mensagem = &quot;Vitoria sobre &quot; + perdedor.getNome()</span>
+                    + &quot; em &quot; + numeroTurnos + &quot; turnos.&quot;;
+<span class="fc" id="L339">            servicoNotificacao.notificar(vencedor.getNome(), mensagem);</span>
+<span class="fc" id="L340">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L341">            registroBatalha.registrarErro(&quot;Falha ao enviar notificacao: &quot; + e.getMessage());</span>
+<span class="fc" id="L342">        }</span>
+<span class="fc" id="L343">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

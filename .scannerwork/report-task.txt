@@ -1,6 +1,6 @@
 projectKey=PokeSal
 serverUrl=http://localhost:9000
-serverVersion=26.9.0.129388
+serverVersion=10.7.0.96327
 dashboardUrl=http://localhost:9000/dashboard?id=PokeSal
-ceTaskId=df3d9875-4911-407b-aade-653e849b3add
-ceTaskUrl=http://localhost:9000/api/ce/task?id=df3d9875-4911-407b-aade-653e849b3add
+ceTaskId=54c7a9a2-e647-4dc5-942e-225463ad7b38
+ceTaskUrl=http://localhost:9000/api/ce/task?id=54c7a9a2-e647-4dc5-942e-225463ad7b38

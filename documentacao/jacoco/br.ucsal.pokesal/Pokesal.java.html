@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Pokesal.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PokeSal</a> &gt; <a href="index.source.html" class="el_package">br.ucsal.pokesal</a> &gt; <span class="el_source">Pokesal.java</span></div><h1>Pokesal.java</h1><pre class="source lang-java linenums">package br.ucsal.pokesal;
+
+/**
+ * Classe que detalha um Pokesal completo.
+ */
+public class Pokesal {
+
+    public static final int DANO_MINIMO = 1;
+    public static final int ATRIBUTO_MINIMO = 1;
+    public static final double FATOR_DESESPERO_DANO = 1.30;
+    public static final double FATOR_LIMIAR_DESESPERO = 0.25;
+    public static final int PENALIDADE_SPD_ASFALTO = 5;
+    public static final double FATOR_AUTODANO = 0.10;
+    public static final double MULTIPLICADOR_GOLPE_CARREGADO = 1.4;
+    public static final double FATOR_ATAQUE_QUEIMADO = 0.80;
+    public static final double FATOR_VELOCIDADE_PARALISADO = 0.50;
+
+    private final String nome;
+    private final TipoElemental tipo;
+    private final int hpMax;
+    private int hpAtual;
+    private final int ataque;
+    private final int defesa;
+    private int velocidade;
+    private Efeito efeito;
+
+    /**
+     * Construtor com os atributos do Pokesal.
+     *
+     * @param nome Nome do Pokesal.
+     * @param tipo Tipo do elemento.
+     * @param hp Pontos de vida.
+     * @param ataque Poder de ataque.
+     * @param defesa Poder de defesa.
+     * @param velocidade Velocidade de iniciativa.
+     */
+    public Pokesal(String nome, TipoElemental tipo, int hp,
+<span class="fc" id="L38">                   int ataque, int defesa, int velocidade) {</span>
+<span class="fc" id="L39">        this.nome = nome;</span>
+<span class="fc" id="L40">        this.tipo = tipo;</span>
+<span class="fc" id="L41">        this.hpMax = hp;</span>
+<span class="fc" id="L42">        this.hpAtual = hp;</span>
+<span class="fc" id="L43">        this.ataque = ataque;</span>
+<span class="fc" id="L44">        this.defesa = defesa;</span>
+<span class="fc" id="L45">        this.velocidade = velocidade;</span>
+<span class="fc" id="L46">        this.efeito = Efeito.NENHUM;</span>
+<span class="fc" id="L47">    }</span>
+
+    /**
+     * Indica se o pokesal ainda tem pontos de vida.
+     *
+     * @return true se o HP for maior que zero.
+     */
+    public boolean isVivo() {
+<span class="fc bfc" id="L55" title="All 2 branches covered.">        return this.hpAtual &gt; 0;</span>
+    }
+
+    /**
+     * Aplica dano, sem deixar o HP negativo.
+     *
+     * @param dano Quantidade de pontos de vida a diminuir.
+     */
+    public void receberDano(int dano) {
+<span class="fc" id="L64">        this.hpAtual -= dano;</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">        if (this.hpAtual &lt; 0) {</span>
+<span class="fc" id="L66">            this.hpAtual = 0;</span>
+        }
+<span class="fc" id="L68">    }</span>
+
+    /**
+     * Recupera vida respeitando o limite maximo de HP.
+     *
+     * @param valorCura Quantidade de pontos curados.
+     */
+    public void curar(int valorCura) {
+<span class="fc" id="L76">        this.hpAtual += valorCura;</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">        if (this.hpAtual &gt; this.hpMax) {</span>
+<span class="fc" id="L78">            this.hpAtual = this.hpMax;</span>
+        }
+<span class="fc" id="L80">    }</span>
+
+    /**
+     * Restaura o HP para o valor maximo e limpa efeitos de status.
+     */
+    public void restaurarParaProximaFase() {
+<span class="fc" id="L86">        this.hpAtual = this.hpMax;</span>
+<span class="fc" id="L87">        this.efeito = Efeito.NENHUM;</span>
+<span class="fc" id="L88">    }</span>
+
+    /**
+     * Regra 1: Golpe Carregado.
+     * Causa dano aumentado com base no ataque, mas consome 10% do proprio HP.
+     *
+     * @param alvo Pokesal que recebera o golpe.
+     */
+    public void executarGolpeCarregado(Pokesal alvo) {
+<span class="fc" id="L97">        int danoBase = (int) (getAtaqueEfetivo() * MULTIPLICADOR_GOLPE_CARREGADO)</span>
+<span class="fc" id="L98">                - alvo.getDefesa();</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">        if (danoBase &lt; DANO_MINIMO) {</span>
+<span class="nc" id="L100">            danoBase = DANO_MINIMO;</span>
+        }
+<span class="fc" id="L102">        alvo.receberDano(danoBase);</span>
+<span class="fc" id="L103">        int danoProprio = (int) (this.hpMax * FATOR_AUTODANO);</span>
+<span class="fc" id="L104">        this.receberDano(danoProprio);</span>
+<span class="fc" id="L105">    }</span>
+
+    /**
+     * Regra 2: Desespero.
+     * Da 30% a mais de dano se a vida estiver em 25% ou menos.
+     *
+     * @return Multiplicador de bonus de desespero.
+     */
+    public double verificarBonusDesespero() {
+<span class="fc bfc" id="L114" title="All 2 branches covered.">        if (this.hpAtual &lt;= (this.hpMax * FATOR_LIMIAR_DESESPERO)) {</span>
+<span class="fc" id="L115">            return FATOR_DESESPERO_DANO;</span>
+        }
+<span class="fc" id="L117">        return 1.0;</span>
+    }
+
+    /**
+     * Regra 3: Quente Demais!
+     * Pokesal de Agua perde 5 pontos de velocidade no asfalto quente.
+     *
+     * @param terreno Terreno atual da arena.
+     */
+    public void aplicarEfeitoTerrenoQuente(Terreno terreno) {
+<span class="fc bfc" id="L127" title="All 4 branches covered.">        if (this.tipo == TipoElemental.AGUA &amp;&amp; terreno == Terreno.ASFALTO_QUENTE) {</span>
+<span class="fc" id="L128">            this.velocidade = Math.max(ATRIBUTO_MINIMO,</span>
+                    this.velocidade - PENALIDADE_SPD_ASFALTO);
+        }
+<span class="fc" id="L131">    }</span>
+
+    /**
+     * Calcula o ataque efetivo considerando o efeito Queimado.
+     *
+     * @return Ataque efetivo no turno.
+     */
+    public int getAtaqueEfetivo() {
+<span class="fc bfc" id="L139" title="All 2 branches covered.">        if (this.efeito == Efeito.QUEIMADO) {</span>
+<span class="fc" id="L140">            return Math.max(ATRIBUTO_MINIMO, (int) (this.ataque * FATOR_ATAQUE_QUEIMADO));</span>
+        }
+<span class="fc" id="L142">        return this.ataque;</span>
+    }
+
+    /**
+     * Calcula a velocidade efetiva considerando o efeito Paralisado.
+     *
+     * @return Velocidade efetiva no turno.
+     */
+    public int getVelocidadeEfetiva() {
+<span class="fc bfc" id="L151" title="All 2 branches covered.">        if (this.efeito == Efeito.PARALISADO) {</span>
+<span class="fc" id="L152">            return Math.max(ATRIBUTO_MINIMO,</span>
+                    (int) (this.velocidade * FATOR_VELOCIDADE_PARALISADO));
+        }
+<span class="fc" id="L155">        return this.velocidade;</span>
+    }
+
+    public String getNome() {
+<span class="fc" id="L159">        return nome;</span>
+    }
+
+    public TipoElemental getTipo() {
+<span class="fc" id="L163">        return tipo;</span>
+    }
+
+    public int getHpAtual() {
+<span class="fc" id="L167">        return hpAtual;</span>
+    }
+
+    public int getHpMax() {
+<span class="fc" id="L171">        return hpMax;</span>
+    }
+
+    public int getAtaque() {
+<span class="nc" id="L175">        return ataque;</span>
+    }
+
+    public int getDefesa() {
+<span class="fc" id="L179">        return defesa;</span>
+    }
+
+    public int getVelocidade() {
+<span class="fc" id="L183">        return velocidade;</span>
+    }
+
+    public Efeito getEfeito() {
+<span class="fc" id="L187">        return efeito;</span>
+    }
+
+    public void setEfeito(Efeito efeito) {
+<span class="fc" id="L191">        this.efeito = efeito;</span>
+<span class="fc" id="L192">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

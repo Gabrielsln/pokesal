@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ResultadoBatalha.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PokeSal</a> &gt; <a href="index.source.html" class="el_package">br.ucsal.pokesal</a> &gt; <span class="el_source">ResultadoBatalha.java</span></div><h1>ResultadoBatalha.java</h1><pre class="source lang-java linenums">package br.ucsal.pokesal;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * Armazena o resumo final de uma batalha concluida.
+ */
+public class ResultadoBatalha {
+
+    private final Treinador vencedor;
+    private final Treinador perdedor;
+    private final int numeroTurnos;
+    private final List&lt;Pokesal&gt; pokesalsUtilizados;
+
+    /**
+     * Construtor com os dados consolidados da batalha.
+     *
+     * @param vencedor Treinador vencedor.
+     * @param perdedor Treinador perdedor.
+     * @param numeroTurnos Quantidade total de turnos disputados.
+     * @param pokesalsUtilizados Lista de Pokesals que participaram do combate.
+     */
+    public ResultadoBatalha(Treinador vencedor, Treinador perdedor,
+<span class="fc" id="L26">                            int numeroTurnos, List&lt;Pokesal&gt; pokesalsUtilizados) {</span>
+<span class="fc" id="L27">        this.vencedor = vencedor;</span>
+<span class="fc" id="L28">        this.perdedor = perdedor;</span>
+<span class="fc" id="L29">        this.numeroTurnos = numeroTurnos;</span>
+<span class="fc" id="L30">        this.pokesalsUtilizados = new ArrayList&lt;&gt;(pokesalsUtilizados);</span>
+<span class="fc" id="L31">    }</span>
+
+    /**
+     * Retorna o treinador vencedor da batalha.
+     *
+     * @return Treinador vencedor.
+     */
+    public Treinador getVencedor() {
+<span class="fc" id="L39">        return vencedor;</span>
+    }
+
+    /**
+     * Retorna o treinador perdedor da batalha.
+     *
+     * @return Treinador perdedor.
+     */
+    public Treinador getPerdedor() {
+<span class="fc" id="L48">        return perdedor;</span>
+    }
+
+    /**
+     * Retorna o total de turnos da batalha.
+     *
+     * @return Numero de turnos.
+     */
+    public int getNumeroTurnos() {
+<span class="fc" id="L57">        return numeroTurnos;</span>
+    }
+
+    /**
+     * Retorna lista imutavel dos Pokesals utilizados na batalha.
+     *
+     * @return Lista de Pokesals.
+     */
+    public List&lt;Pokesal&gt; getPokesalsUtilizados() {
+<span class="fc" id="L66">        return Collections.unmodifiableList(pokesalsUtilizados);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

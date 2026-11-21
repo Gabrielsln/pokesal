@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Main.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PokeSal</a> &gt; <a href="index.source.html" class="el_package">br.ucsal.pokesal</a> &gt; <span class="el_source">Main.java</span></div><h1>Main.java</h1><pre class="source lang-java linenums">package br.ucsal.pokesal;
+
+import br.ucsal.pokesal.registros.RegistroBatalhaMemoria;
+import br.ucsal.pokesal.repositorios.RepositorioResultadosMemoria;
+import br.ucsal.pokesal.servicos.GeradorAleatorio;
+import br.ucsal.pokesal.servicos.GeradorAleatorioPadrao;
+import br.ucsal.pokesal.servicos.ServicoClima;
+import br.ucsal.pokesal.servicos.ServicoNotificacao;
+import br.ucsal.pokesal.servicos.ServicoRanking;
+import br.ucsal.pokesal.servicos.ServicoRankingMemoria;
+import br.ucsal.pokesal.servicos.ServicoTerreno;
+import br.ucsal.pokesal.servicos.ServicoTerrenoEstacionamento;
+
+import java.time.Clock;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+
+/**
+ * Classe principal que configura as dependencias e executa um torneio PokeSal.
+ */
+<span class="nc" id="L22">public class Main {</span>
+
+    /**
+     * Metodo principal de execucao do simulador.
+     *
+     * @param args Argumentos de linha de comando.
+     */
+    public static void main(String[] args) {
+<span class="nc" id="L30">        System.out.println(&quot;=== TORNEIO POKESAL: ESTACIONAMENTO UCSAL PITUACU ===&quot;);</span>
+
+<span class="nc" id="L32">        GeradorAleatorio gerador = new GeradorAleatorioPadrao(new Random());</span>
+<span class="nc" id="L33">        ServicoClima servicoClima = () -&gt; Clima.ENSOLARADO;</span>
+<span class="nc" id="L34">        ServicoTerreno servicoTerreno = new ServicoTerrenoEstacionamento(</span>
+<span class="nc" id="L35">                servicoClima, Clock.systemDefaultZone());</span>
+<span class="nc" id="L36">        RepositorioResultadosMemoria repositorio = new RepositorioResultadosMemoria();</span>
+<span class="nc" id="L37">        RegistroBatalhaMemoria registro = new RegistroBatalhaMemoria();</span>
+<span class="nc" id="L38">        ServicoNotificacao notificacao = (destinatario, mensagem) -&gt;</span>
+<span class="nc" id="L39">                System.out.println(&quot;[NOTIFICACAO -&gt; &quot; + destinatario + &quot;] &quot; + mensagem);</span>
+<span class="nc" id="L40">        ServicoRanking servicoRanking = new ServicoRankingMemoria();</span>
+
+<span class="nc" id="L42">        Batalha batalha = new Batalha(</span>
+                gerador,
+                servicoTerreno,
+                repositorio,
+                registro,
+                notificacao,
+                servicoRanking
+        );
+
+<span class="nc" id="L51">        Torneio torneio = new Torneio(batalha, repositorio, registro, notificacao);</span>
+
+<span class="nc" id="L53">        List&lt;Treinador&gt; treinadores = Arrays.asList(</span>
+                new Treinador(&quot;Gabriel&quot;, new Pokesal(&quot;CharSal&quot;, TipoElemental.FOGO, 100, 26, 14, 20)),
+                new Treinador(&quot;Lucas&quot;, new Pokesal(&quot;TotoSal&quot;, TipoElemental.AGUA, 110, 22, 18, 16)),
+                new Treinador(&quot;Marina&quot;, new Pokesal(&quot;BulbaSal&quot;, TipoElemental.PLANTA, 105, 24, 15, 18)),
+                new Treinador(&quot;Rafael&quot;, new Pokesal(&quot;CyndaSal&quot;, TipoElemental.FOGO, 95, 27, 13, 22))
+        );
+
+<span class="nc" id="L60">        Golpe golpePadrao = new Golpe(&quot;Investida Elemental&quot;, TipoElemental.FOGO, 90);</span>
+<span class="nc" id="L61">        Treinador campeao = torneio.executarTorneio(treinadores, golpePadrao);</span>
+
+<span class="nc" id="L63">        System.out.println(&quot;Terreno atual: &quot; + servicoTerreno.obterTerrenoAtual());</span>
+<span class="nc" id="L64">        System.out.println(&quot;Campeao do torneio: &quot; + campeao.getNome()</span>
+<span class="nc" id="L65">                + &quot; com &quot; + campeao.getPokesal().getNome());</span>
+<span class="nc" id="L66">        System.out.println(&quot;Total de eventos registrados: &quot; + registro.getEventos().size());</span>
+<span class="nc" id="L67">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
